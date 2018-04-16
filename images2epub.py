@@ -15,7 +15,8 @@ parser.add_argument('-t', '--title', help='Title of the story', default="Unknown
 parser.add_argument('-a', '--author', help='Author of the story', default="Unknown Author")
 parser.add_argument('-s', '--subject', help='Subject of the story. Can be used multiple times.', action='append')
 parser.add_argument('-d', '--direction', help='Reading direction (ltr or rtl, default: ltr)', default='ltr')
-parser.add_argument('--id', help='Story id (default: random)', default='urn:uuid:' + str(uuid4()))
+parser.add_argument('-i', '--storyid', help='Story id (default: random)', default='urn:uuid:' + str(uuid4()))
+parser.add_argument('-l', '--level', help='Compression level [0-9] (default: 9)', default=9, type=int)
 parser.add_argument('directory', help='Path to directory with images')
 parser.add_argument('output', help='Output EPUB filename')
 args = parser.parse_args()
@@ -250,11 +251,14 @@ if len(imageFiles) < 1:
 
 print('Found ' + str(len(imageFiles)) + ' pages.')
 
+prev_compression = zipfile.zlib.Z_DEFAULT_COMPRESSION
+zipfile.zlib.Z_DEFAULT_COMPRESSION = args.level
+
 output = zipfile.ZipFile(args.output, 'w', zipfile.ZIP_DEFLATED)
 output.writestr('mimetype', 'application/epub+zip', compress_type=zipfile.ZIP_STORED)
 output.writestr(CONTAINER_PATH, CONTAINER_XML)
-output.writestr('OEBPS/content.opf', createOpf(args.title, args.author, args.id, imageFiles))
-output.writestr('OEBPS/toc.ncx', createNcx(args.title, args.author, args.id))
+output.writestr('OEBPS/content.opf', createOpf(args.title, args.author, args.storyid, imageFiles))
+output.writestr('OEBPS/toc.ncx', createNcx(args.title, args.author, args.storyid))
 output.writestr('OEBPS/toc.xhtml', createNav(args.title, len(imageFiles)))
 output.writestr('OEBPS/imagestyle.css', IMAGESTYLE_CSS)
 
@@ -272,4 +276,6 @@ for i, img in enumerate(imageFiles):
     output.write(path.join(args.directory, img), 'OEBPS/images/page-' + uid + path.splitext(img)[1])
 
 output.close()
+zipfile.zlib.Z_DEFAULT_COMPRESSION = prev_compression
+
 print('Complete! Saved EPUB as ' + args.output)
