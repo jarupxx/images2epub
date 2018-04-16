@@ -37,6 +37,16 @@ CONTAINER_XML = '''<?xml version='1.0' encoding='utf-8'?>
 </container>
 '''
 
+IBOOKS_DISPLAY_OPTIONS_PATH = 'META-INF/com.apple.ibooks.display-options.xml'
+IBOOKS_DISPLAY_OPTIONS_XML = '''<?xml version="1.0" encoding="UTF-8"?>
+<display_options>
+  <platform name="*">
+    <option name="fixed-layout">true</option>
+    <option name="open-to-spread">false</option>
+  </platform>
+</display_options>
+'''
+
 IMAGESTYLE_CSS = '''
 @page {
   padding: 0;
@@ -257,6 +267,7 @@ zipfile.zlib.Z_DEFAULT_COMPRESSION = args.level
 output = zipfile.ZipFile(args.output, 'w', zipfile.ZIP_DEFLATED)
 output.writestr('mimetype', 'application/epub+zip', compress_type=zipfile.ZIP_STORED)
 output.writestr(CONTAINER_PATH, CONTAINER_XML)
+output.writestr(IBOOKS_DISPLAY_OPTIONS_PATH, IBOOKS_DISPLAY_OPTIONS_XML)
 output.writestr('OEBPS/content.opf', createOpf(args.title, args.author, args.storyid, imageFiles))
 output.writestr('OEBPS/toc.ncx', createNcx(args.title, args.author, args.storyid))
 output.writestr('OEBPS/toc.xhtml', createNav(args.title, len(imageFiles)))
