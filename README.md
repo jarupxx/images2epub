@@ -4,6 +4,9 @@ Converts a directory of images into a modern EPUB3 ebook. Use a tool to extract 
 
 
 ## Usage
+
+Install dependencies with `pip install imagesize lxml`
+
 ```
 usage: images2epub.py [-h] [-t TITLE] [-a AUTHOR] [-i STORYID] [-d DIRECTION]
                       [-s SUBJECT] [-l LEVEL]
@@ -28,3 +31,7 @@ optional arguments:
   -l LEVEL, --level LEVEL
                         Compression level [0-9] (default: 9)
 ```
+
+## Example
+
+`./images2epub.py -t "Sailor Moon #1" -a "Naoko Takeuchi" -s "Magical Girl" -s "Manga" -d rtl images/ sailormoon1.epub`
