@@ -1,6 +1,6 @@
 # images2epub.py
 
-Converts a directory of images into a modern EPUB3 ebook. Use a tool to extract CBZ/CBR/CBT files and then run this program to generate a nice fixed-layout EPUB ebook of it. You can optionally set the reading direction to right-to-left (e.g. for manga).
+Converts a directory of images into a modern EPUB3 ebook. Use a tool to extract CBZ/CBR/CBT files and then run this program to generate a nice fixed-layout EPUB ebook of it. You can optionally set the reading direction to right-to-left (e.g. for manga). For Kobo ereaders, use the file extension .kepub.epub to get the modern reader and correct reading direction.
 
 
 ## Usage
