@@ -116,6 +116,8 @@ def createOpf(title, author, bookId, imageFiles):
 
     el = etree.SubElement(metadata, '{' + NAMESPACES['DC'] + '}creator', {'id': 'creator'})
     el.text = author
+    el = etree.SubElement(metadata, 'meta', {'refines': '#creator', 'property': 'role', 'scheme': 'marc:relators'})
+    el.text = 'aut'
 
     el = etree.SubElement(metadata, '{' + NAMESPACES['DC'] + '}language')
     el.text = 'en'
