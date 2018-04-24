@@ -15,7 +15,7 @@ parser.add_argument('-t', '--title', help='Title of the story', default="Unknown
 parser.add_argument('-a', '--author', help='Author of the story', default="Unknown Author")
 parser.add_argument('-i', '--storyid', help='Story id (default: random)', default='urn:uuid:' + str(uuid4()))
 parser.add_argument('-d', '--direction', help='Reading direction (ltr or rtl, default: ltr)', default='ltr')
-parser.add_argument('-s', '--subject', help='Subject of the story. Can be used multiple times.', action='append')
+parser.add_argument('-s', '--subject', help='Subject of the story. Can be used multiple times.', action='append', default=[])
 parser.add_argument('-l', '--level', help='Compression level [0-9] (default: 9)', default=9, type=int)
 parser.add_argument('directory', help='Path to directory with images')
 parser.add_argument('output', help='Output EPUB filename')
@@ -76,7 +76,6 @@ IMAGE_TYPES = {
 def image2xhtml(imgfile, width, height, title, epubtype = 'bodymatter', lang = 'en'):
     content = '''<?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE html>
-
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="{lang}">
 <head>
   <meta name="viewport" content="width={width}, height={height}"/>
@@ -187,7 +186,7 @@ def createOpf(title, author, bookId, imageFiles):
     for i, img in enumerate(imageFiles):
         uid = UID_FORMAT.format(i)
         props = 'page-spread-left'
-        if (i % 2 == 0 and args.direction == 'rtl') or (i % 2 != 0 and args.direction == 'ltr'):
+        if (i % 2 == 0 and args.direction == 'ltr') or (i % 2 != 0 and args.direction == 'rtl'):
             props = 'page-spread-right'
         etree.SubElement(spine, 'itemref', {
             'idref': 'page-' + uid,
@@ -202,7 +201,7 @@ def createNcx(title, author, bookId):
 <ncx:ncx xmlns:ncx="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
   <ncx:head>
     <ncx:meta name="dtb:uid" content="{bookId}"/>
-    <ncx:meta name="dtb:depth" content="-1"/>
+    <ncx:meta name="dtb:depth" content="1"/>
     <ncx:meta name="dtb:totalPageCount" content="0"/>
     <ncx:meta name="dtb:maxPageNumber" content="0"/>
   </ncx:head>
@@ -213,10 +212,8 @@ def createNcx(title, author, bookId):
     <ncx:text>{author}</ncx:text>
   </ncx:docAuthor>
   <ncx:navMap>
-    <ncx:navPoint id="p01" playOrder="1">
-      <ncx:navLabel>
-        <ncx:text>{title}</ncx:text>
-      </ncx:navLabel>
+    <ncx:navPoint id="p1" playOrder="1">
+      <ncx:navLabel><ncx:text>{title}</ncx:text></ncx:navLabel>
       <ncx:content src="page-000.xhtml"/>
     </ncx:navPoint>
   </ncx:navMap>
@@ -227,9 +224,12 @@ def createNav(title, pageCount):
     pages = [None] * pageCount
     for i, page in enumerate(pages):
         uid = UID_FORMAT.format(i)
-        pages[i] = '          <li><a href="page-{uid}.xhtml">{pageNumber}</a></li>'.format(uid=uid, pageNumber=i+1)
-    return '''<?xml version="1.0" encoding="UTF-8"?>
+        pages[i] = '          <li><a href="page-{uid}.xhtml">{pageNumber}</a></li>'.format(uid=uid, pageNumber=i)
+    pages.pop(0)
+
+    return '''<?xml version="1.0" encoding="utf-8"?>
 <?xml-model href="http://www.idpf.org/epub/30/schema/epub-nav-30.rnc" type="application/relax-ng-compact-syntax"?>
+<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="en">
   <head>
     <title>{title}</title>
@@ -239,9 +239,7 @@ def createNav(title, pageCount):
       <h1>Table of Contents</h1>
       <nav epub:type="toc" id="toc">
         <ol>
-          <li epub:type="chapter" id="toc-01">
-            <a href="page-000.xhtml">{title}</a>
-          </li>
+          <li epub:type="chapter"><a href="page-000.xhtml">{title}</a></li>
         </ol>
       </nav>
       <nav epub:type="page-list">
