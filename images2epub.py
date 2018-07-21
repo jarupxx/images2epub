@@ -73,6 +73,7 @@ IMAGE_TYPES = {
     'png': 'image/png'
 }
 
+
 def image2xhtml(imgfile, width, height, title, epubtype = 'bodymatter', lang = 'en'):
     content = '''<?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE html>
@@ -91,6 +92,7 @@ def image2xhtml(imgfile, width, height, title, epubtype = 'bodymatter', lang = '
            filename=escape(imgfile), title=escape(title),
            epubtype=epubtype, lang=lang)
     return content
+
 
 def createOpf(title, author, bookId, imageFiles):
     package_attributes = {'xmlns': NAMESPACES['OPF'],
@@ -196,6 +198,7 @@ def createOpf(title, author, bookId, imageFiles):
     tree_str = etree.tostring(root, pretty_print=True, encoding='utf-8', xml_declaration=True)
     return tree_str
 
+
 def createNcx(title, author, bookId):
     return '''<?xml version="1.0" encoding="utf-8" standalone="no"?>
 <ncx:ncx xmlns:ncx="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
@@ -220,6 +223,7 @@ def createNcx(title, author, bookId):
 </ncx:ncx>
 '''.format(title=escape(title), author=escape(author), bookId=bookId)
 
+
 def createNav(title, pageCount):
     pages = [None] * pageCount
     for i, page in enumerate(pages):
@@ -228,7 +232,6 @@ def createNav(title, pageCount):
     pages.pop(0)
 
     return '''<?xml version="1.0" encoding="utf-8"?>
-<?xml-model href="http://www.idpf.org/epub/30/schema/epub-nav-30.rnc" type="application/relax-ng-compact-syntax"?>
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="en">
   <head>
@@ -250,6 +253,7 @@ def createNav(title, pageCount):
     </section>
   </body>
 </html>'''.format(pages='\n'.join(pages), title=escape(title))
+
 
 imageFiles = sorted([f for f in listdir(args.directory) if path.isfile(path.join(args.directory, f))])
 
