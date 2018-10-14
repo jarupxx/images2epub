@@ -17,6 +17,8 @@ parser.add_argument('-i', '--storyid', help='Story id (default: random)', defaul
 parser.add_argument('-d', '--direction', help='Reading direction (ltr or rtl, default: ltr)', default='ltr')
 parser.add_argument('-s', '--subject', help='Subject of the story. Can be used multiple times.', action='append', default=[])
 parser.add_argument('-l', '--level', help='Compression level [0-9] (default: 9)', default=9, type=int)
+parser.add_argument('--pagelist', help='Text file with list of images')
+parser.add_argument('--toclist', help='Text file with table of contents')
 parser.add_argument('directory', help='Path to directory with images')
 parser.add_argument('output', help='Output EPUB filename')
 args = parser.parse_args()
@@ -231,6 +233,27 @@ def createNav(title, pageCount):
         pages[i] = '          <li><a href="page-{uid}.xhtml">{pageNumber}</a></li>'.format(uid=uid, pageNumber=i)
     pages.pop(0)
 
+    toc = [(0, title)]
+    if args.toclist:
+        toc = []
+        title = ""
+        img = ""
+        with open(args.toclist) as toclist:
+            for item in toclist:
+                if item.strip():
+                    if not title:
+                        title = item.strip()
+                    else:
+                        img = item.strip()
+                        toc.append((imageFiles.index(img), title))
+                        title = ""
+    tochtml = []
+    for item in toc:
+        (i, name) = item
+        print(i, name)
+        uid = UID_FORMAT.format(i)
+        tochtml.append('          <li epub:type="chapter"><a href="page-{uid}.xhtml">{name}</a></li>'.format(uid=uid, name=escape(name)))
+
     return '''<?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="en">
@@ -242,7 +265,7 @@ def createNav(title, pageCount):
       <h1>Table of Contents</h1>
       <nav epub:type="toc" id="toc">
         <ol>
-          <li epub:type="chapter"><a href="page-000.xhtml">{title}</a></li>
+{toc}
         </ol>
       </nav>
       <nav epub:type="page-list">
@@ -252,10 +275,17 @@ def createNav(title, pageCount):
       </nav>
     </section>
   </body>
-</html>'''.format(pages='\n'.join(pages), title=escape(title))
+</html>'''.format(pages='\n'.join(pages), toc='\n'.join(tochtml), title=escape(title))
 
 
-imageFiles = sorted([f for f in listdir(args.directory) if path.isfile(path.join(args.directory, f))])
+if not args.pagelist:
+    imageFiles = sorted([f for f in listdir(args.directory) if path.isfile(path.join(args.directory, f))])
+else:
+    imageFiles = []
+    with open(args.pagelist) as pagelist:
+        for page in pagelist:
+            if page.strip():
+                imageFiles.append(page.strip())
 
 imageFiles = list(filter(lambda img: path.splitext(img)[1][1:] in IMAGE_TYPES, imageFiles))
 

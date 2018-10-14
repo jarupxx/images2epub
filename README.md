@@ -9,7 +9,8 @@ Install dependencies with `pip install imagesize lxml`
 
 ```
 usage: images2epub.py [-h] [-t TITLE] [-a AUTHOR] [-i STORYID] [-d DIRECTION]
-                      [-s SUBJECT] [-l LEVEL]
+                      [-s SUBJECT] [-l LEVEL] [--pagelist PAGELIST]
+                      [--toclist TOCLIST]
                       directory output
 
 positional arguments:
@@ -30,8 +31,43 @@ optional arguments:
                         Subject of the story. Can be used multiple times.
   -l LEVEL, --level LEVEL
                         Compression level [0-9] (default: 9)
+  --pagelist PAGELIST   Text file with list of images
+  --toclist TOCLIST     Text file with table of contents
 ```
 
 ## Example
 
 `./images2epub.py -t "Sailor Moon #1" -a "Naoko Takeuchi" -s "Magical Girl" -s "Manga" -d rtl images/ sailormoon1.epub`
+
+
+## Advanced usage
+
+You can specify a pagelist. Newlines are ignored:
+
+```
+cover.jpg
+
+prologue.jpg
+
+chapter-01-cover.jpg
+chapter_01_page_01.jpg
+chapter_01_page_02.jpg
+
+chapter_02_intro.jpg
+chapter_02_page_01.jpg
+...
+```
+
+You can specify a table of contents (EPUB metadata). Newlines are ignored:
+
+```
+Cover
+cover.jpg
+
+Prologue
+prologue.jpg
+
+Chapter One
+chapter-01-cover.jpg
+...
+```
