@@ -72,11 +72,12 @@ body {
 IMAGE_TYPES = {
     'jpeg': 'image/jpeg',
     'jpg': 'image/jpeg',
-    'png': 'image/png'
+    'png': 'image/png',
+    'svg': 'image/svg+xml'
 }
 
 
-def image2xhtml(imgfile, width, height, title, epubtype = 'bodymatter', lang = 'en'):
+def image2xhtml(imgfile, width, height, title, epubtype='bodymatter', lang='en'):
     content = '''<?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="{lang}">
@@ -96,7 +97,7 @@ def image2xhtml(imgfile, width, height, title, epubtype = 'bodymatter', lang = '
     return content
 
 
-def createOpf(title, author, bookId, imageFiles):
+def create_opf(title, author, bookId, imageFiles):
     package_attributes = {'xmlns': NAMESPACES['OPF'],
                           'unique-identifier': 'bookId',
                           'version': '3.0',
@@ -139,6 +140,7 @@ def createOpf(title, author, bookId, imageFiles):
     el.text = 'landscape'
 
     width, height = imagesize.get(path.join(args.directory, imageFiles[0]))
+    # width, height = (-1, -1)
     etree.SubElement(metadata, 'meta', {'name': 'original-resolution', 'content': str(width) + 'x' + str(height)})
 
     # manifest
@@ -152,11 +154,12 @@ def createOpf(title, author, bookId, imageFiles):
 
     for i, img in enumerate(imageFiles):
         uid = UID_FORMAT.format(i)
+        ext = path.splitext(img)[1][1:]
 
         imgattrs = {
-            'href': 'images/page-' + uid + path.splitext(img)[1],
+            'href': 'images/page-' + uid + '.' + ext,
             'id': 'img-' + uid,
-            'media-type': IMAGE_TYPES[path.splitext(img)[1][1:]],
+            'media-type': IMAGE_TYPES[ext],
         }
         if i == 0:
             imgattrs['properties'] = 'cover-image'
@@ -201,11 +204,11 @@ def createOpf(title, author, bookId, imageFiles):
     return tree_str
 
 
-def createNcx(title, author, bookId):
+def create_ncx(title, author, book_id):
     return '''<?xml version="1.0" encoding="utf-8" standalone="no"?>
 <ncx:ncx xmlns:ncx="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
   <ncx:head>
-    <ncx:meta name="dtb:uid" content="{bookId}"/>
+    <ncx:meta name="dtb:uid" content="{book_id}"/>
     <ncx:meta name="dtb:depth" content="1"/>
     <ncx:meta name="dtb:totalPageCount" content="0"/>
     <ncx:meta name="dtb:maxPageNumber" content="0"/>
@@ -223,14 +226,14 @@ def createNcx(title, author, bookId):
     </ncx:navPoint>
   </ncx:navMap>
 </ncx:ncx>
-'''.format(title=escape(title), author=escape(author), bookId=bookId)
+'''.format(title=escape(title), author=escape(author), book_id=book_id)
 
 
-def createNav(title, pageCount):
-    pages = [None] * pageCount
+def create_nav(title, page_count):
+    pages = [None] * page_count
     for i, page in enumerate(pages):
         uid = UID_FORMAT.format(i)
-        pages[i] = '          <li><a href="page-{uid}.xhtml">{pageNumber}</a></li>'.format(uid=uid, pageNumber=i)
+        pages[i] = '          <li><a href="page-{uid}.xhtml">{page_number}</a></li>'.format(uid=uid, page_number=i)
     pages.pop(0)
 
     toc = [(0, title)]
@@ -302,23 +305,27 @@ output = zipfile.ZipFile(args.output, 'w', zipfile.ZIP_DEFLATED)
 output.writestr('mimetype', 'application/epub+zip', compress_type=zipfile.ZIP_STORED)
 output.writestr(CONTAINER_PATH, CONTAINER_XML)
 output.writestr(IBOOKS_DISPLAY_OPTIONS_PATH, IBOOKS_DISPLAY_OPTIONS_XML)
-output.writestr('OEBPS/content.opf', createOpf(args.title, args.author, args.storyid, imageFiles))
-output.writestr('OEBPS/toc.ncx', createNcx(args.title, args.author, args.storyid))
-output.writestr('OEBPS/toc.xhtml', createNav(args.title, len(imageFiles)))
+output.writestr('OEBPS/content.opf', create_opf(args.title, args.author, args.storyid, imageFiles))
+output.writestr('OEBPS/toc.ncx', create_ncx(args.title, args.author, args.storyid))
+output.writestr('OEBPS/toc.xhtml', create_nav(args.title, len(imageFiles)))
 output.writestr('OEBPS/imagestyle.css', IMAGESTYLE_CSS)
 
 for i, img in enumerate(imageFiles):
     uid = UID_FORMAT.format(i)
     title = 'Page ' + str(i)
+    ext = path.splitext(img)[1][1:]
     epubtype = 'bodymatter'
     if i == 0:
         title = 'Cover'
         epubtype = 'cover'
-    width, height = imagesize.get(path.join(args.directory, img))
+    if ext == 'svg':
+        width, height = (-1, -1)
+    else:
+        width, height = imagesize.get(path.join(args.directory, img))
     print(str(round(i/len(imageFiles)*100)) + '%', 'Processing page ' + str(i+1) + ' of ' + str(len(imageFiles)) + ': ' + img, '(' + str(width) + 'x' + str(height) + ')')
-    html = image2xhtml('images/page-' + uid + path.splitext(img)[1], width, height, title, epubtype, 'en')
+    html = image2xhtml('images/page-' + uid + '.' + ext, width, height, title, epubtype, 'en')
     output.writestr('OEBPS/page-{uid}.xhtml'.format(uid=uid), html)
-    output.write(path.join(args.directory, img), 'OEBPS/images/page-' + uid + path.splitext(img)[1])
+    output.write(path.join(args.directory, img), 'OEBPS/images/page-' + uid + '.' + ext)
 
 output.close()
 zipfile.zlib.Z_DEFAULT_COMPRESSION = prev_compression
