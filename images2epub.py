@@ -15,6 +15,7 @@ parser.add_argument('-t', '--title', help='Title of the story', default="Unknown
 parser.add_argument('-a', '--author', help='Author of the story', default="Unknown Author")
 parser.add_argument('-i', '--storyid', help='Story id (default: random)', default='urn:uuid:' + str(uuid4()))
 parser.add_argument('-d', '--direction', help='Reading direction (ltr or rtl, default: ltr)', default='ltr')
+parser.add_argument('-c', '--cover', help='Include Book cover (yes or no, default: yes)', default='yes')
 parser.add_argument('-s', '--subject', help='Subject of the story. Can be used multiple times.', action='append', default=[])
 parser.add_argument('-l', '--level', help='Compression level [0-9] (default: 9)', default=9, type=int)
 parser.add_argument('--pagelist', help='Text file with list of images')
@@ -25,6 +26,8 @@ args = parser.parse_args()
 
 if args.direction != 'rtl':
     args.direction = 'ltr'
+if args.cover != 'no':
+    args.cover = 'yes'
 
 UID_FORMAT = '{:03d}'
 NAMESPACES = {'OPF': 'http://www.idpf.org/2007/opf',
@@ -193,7 +196,11 @@ def create_opf(title, author, bookId, imageFiles):
     for i, img in enumerate(imageFiles):
         uid = UID_FORMAT.format(i)
         props = 'page-spread-left'
-        if (i % 2 == 0 and args.direction == 'ltr') or (i % 2 != 0 and args.direction == 'rtl'):
+        if (i == 0 and args.cover == 'yes'):
+            props = 'rendition:page-spread-center'
+        elif (args.cover == 'yes' and ((i % 2 == 0 and args.direction == 'ltr') or (i % 2 != 0 and args.direction == 'rtl'))):
+            props = 'page-spread-right'
+        elif (args.cover == 'no' and ((i % 2 != 0 and args.direction == 'ltr') or (i % 2 == 0 and args.direction == 'rtl'))):
             props = 'page-spread-right'
         etree.SubElement(spine, 'itemref', {
             'idref': 'page-' + uid,
@@ -315,7 +322,7 @@ for i, img in enumerate(imageFiles):
     title = 'Page ' + str(i)
     ext = path.splitext(img)[1][1:]
     epubtype = 'bodymatter'
-    if i == 0:
+    if (i == 0 and args.cover == 'yes'):
         title = 'Cover'
         epubtype = 'cover'
     if ext == 'svg':

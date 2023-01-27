@@ -27,6 +27,8 @@ optional arguments:
                         Story id (default: random)
   -d DIRECTION, --direction DIRECTION
                         Reading direction (ltr or rtl, default: ltr)
+  -c COVER, --cover COVER
+                        Include Book cover (yes or no, default: yes)
   -s SUBJECT, --subject SUBJECT
                         Subject of the story. Can be used multiple times.
   -l LEVEL, --level LEVEL
@@ -37,7 +39,7 @@ optional arguments:
 
 ## Example
 
-`./images2epub.py -t "Sailor Moon #1" -a "Naoko Takeuchi" -s "Magical Girl" -s "Manga" -d rtl images/ sailormoon1.epub`
+`./images2epub.py -t "Sailor Moon #1" -a "Naoko Takeuchi" -s "Magical Girl" -s "Manga" -d rtl -c yes images/ sailormoon1.epub`
 
 
 ## Advanced usage
