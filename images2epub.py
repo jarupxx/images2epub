@@ -35,9 +35,9 @@ NAMESPACES = {'OPF': 'http://www.idpf.org/2007/opf',
 
 CONTAINER_PATH = 'META-INF/container.xml'
 CONTAINER_XML = '''<?xml version='1.0' encoding='utf-8'?>
-<container xmlns="urn:oasis:names:tc:opendocument:xmlns:container" version="1.0">
+<container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
   <rootfiles>
-    <rootfile media-type="application/oebps-package+xml" full-path="OEBPS/content.opf"/>
+    <rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/>
   </rootfiles>
 </container>
 '''
@@ -87,7 +87,7 @@ def image2xhtml(imgfile, width, height, title, epubtype='bodymatter', lang='en')
 <head>
   <meta name="viewport" content="width={width}, height={height}"/>
   <title>{title}</title>
-  <link rel="stylesheet" type="text/css" href="imagestyle.css"/>
+  <link rel="stylesheet" type="text/css" href="../Styles/imagestyle.css"/>
 </head>
 
 <body epub:type="{epubtype}">
@@ -149,10 +149,20 @@ def create_opf(title, author, bookId, imageFiles):
     # manifest
     manifest = etree.SubElement(root, 'manifest')
 
+    for i, img in enumerate(imageFiles):
+        uid = UID_FORMAT.format(i)
+        ext = path.splitext(img)[1][1:]
+
+        etree.SubElement(manifest, 'item', {
+            'id': 'page-' + uid,
+            'media-type': 'application/xhtml+xml',
+            'href': 'Text/page-' + uid + '.xhtml',
+            'properties': 'svg'
+        })
     etree.SubElement(manifest, 'item', {
-        'href': 'imagestyle.css',
         'id': 'imagestyle',
-        'media-type': 'text/css'
+        'media-type': 'text/css',
+        'href': 'Styles/imagestyle.css'
     })
 
     for i, img in enumerate(imageFiles):
@@ -160,37 +170,29 @@ def create_opf(title, author, bookId, imageFiles):
         ext = path.splitext(img)[1][1:]
 
         imgattrs = {
-            'href': 'images/page-' + uid + '.' + ext,
             'id': 'img-' + uid,
             'media-type': IMAGE_TYPES[ext],
+            'href': 'Images/page-' + uid + '.' + ext,
         }
         if i == 0:
             imgattrs['properties'] = 'cover-image'
         etree.SubElement(manifest, 'item', imgattrs)
-
-        etree.SubElement(manifest, 'item', {
-            'href': 'page-' + uid + '.xhtml',
-            'id': 'page-' + uid,
-            'media-type': 'application/xhtml+xml',
-            'properties': 'svg'
-        })
-
     etree.SubElement(manifest, 'item', {
-        'href': 'toc.ncx',
-        'id': 'ncxtoc',
-        'media-type': 'application/x-dtbncx+xml',
+        'id': 'nav',
+        'media-type': 'application/xhtml+xml',
+        'href': 'Text/nav.xhtml',
+        'properties': 'nav'
     })
     etree.SubElement(manifest, 'item', {
-        'href': 'toc.xhtml',
-        'id': 'toc',
-        'media-type': 'application/xhtml+xml',
-        'properties': 'nav'
+        'id': 'ncx',
+        'media-type': 'application/x-dtbncx+xml',
+        'href': 'toc.ncx',
     })
 
     # spine
     spine = etree.SubElement(root, 'spine', {
-        'toc': 'ncxtoc',
-        'page-progression-direction': args.direction
+        'page-progression-direction': args.direction,
+        'toc': 'ncx'
     })
 
     for i, img in enumerate(imageFiles):
@@ -229,7 +231,7 @@ def create_ncx(title, author, book_id):
   <ncx:navMap>
     <ncx:navPoint id="p1" playOrder="1">
       <ncx:navLabel><ncx:text>{title}</ncx:text></ncx:navLabel>
-      <ncx:content src="page-0000.xhtml"/>
+      <ncx:content src="Text/page-0000.xhtml"/>
     </ncx:navPoint>
   </ncx:navMap>
 </ncx:ncx>
@@ -314,8 +316,8 @@ output.writestr(CONTAINER_PATH, CONTAINER_XML)
 output.writestr(IBOOKS_DISPLAY_OPTIONS_PATH, IBOOKS_DISPLAY_OPTIONS_XML)
 output.writestr('OEBPS/content.opf', create_opf(args.title, args.author, args.storyid, imageFiles))
 output.writestr('OEBPS/toc.ncx', create_ncx(args.title, args.author, args.storyid))
-output.writestr('OEBPS/toc.xhtml', create_nav(args.title, len(imageFiles)))
-output.writestr('OEBPS/imagestyle.css', IMAGESTYLE_CSS)
+output.writestr('OEBPS/Text/nav.xhtml', create_nav(args.title, len(imageFiles)))
+output.writestr('OEBPS/Styles/imagestyle.css', IMAGESTYLE_CSS)
 
 for i, img in enumerate(imageFiles):
     uid = UID_FORMAT.format(i)
@@ -330,9 +332,9 @@ for i, img in enumerate(imageFiles):
     else:
         width, height = imagesize.get(path.join(args.directory, img))
     print(str(round(i/len(imageFiles)*100)) + '%', 'Processing page ' + str(i+1) + ' of ' + str(len(imageFiles)) + ': ' + img, '(' + str(width) + 'x' + str(height) + ')')
-    html = image2xhtml('images/page-' + uid + '.' + ext, width, height, title, epubtype, 'en')
-    output.writestr('OEBPS/page-{uid}.xhtml'.format(uid=uid), html)
-    output.write(path.join(args.directory, img), 'OEBPS/images/page-' + uid + '.' + ext)
+    html = image2xhtml('../Images/page-' + uid + '.' + ext, width, height, title, epubtype, 'en')
+    output.writestr('OEBPS/Text/page-{uid}.xhtml'.format(uid=uid), html)
+    output.write(path.join(args.directory, img), 'OEBPS/Images/page-' + uid + '.' + ext)
 
 output.close()
 zipfile.zlib.Z_DEFAULT_COMPRESSION = prev_compression
