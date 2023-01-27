@@ -29,7 +29,7 @@ if args.direction != 'rtl':
 if args.cover != 'no':
     args.cover = 'yes'
 
-UID_FORMAT = '{:03d}'
+UID_FORMAT = '{:04d}'
 NAMESPACES = {'OPF': 'http://www.idpf.org/2007/opf',
               'DC': 'http://purl.org/dc/elements/1.1/'}
 
@@ -229,7 +229,7 @@ def create_ncx(title, author, book_id):
   <ncx:navMap>
     <ncx:navPoint id="p1" playOrder="1">
       <ncx:navLabel><ncx:text>{title}</ncx:text></ncx:navLabel>
-      <ncx:content src="page-000.xhtml"/>
+      <ncx:content src="page-0000.xhtml"/>
     </ncx:navPoint>
   </ncx:navMap>
 </ncx:ncx>
