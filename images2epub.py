@@ -91,7 +91,8 @@ def image2xhtml(imgfile, width, height, title, epubtype='bodymatter', lang='en')
 </head>
 
 <body epub:type="{epubtype}">
-  <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="image" version="1.1" viewBox="0 0 {width} {height}"><image width="{width}" height="{height}" xlink:href="{filename}"/></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" id="image" viewBox="0 0 {width} {height}">
+  <image width="{width}" height="{height}" xlink:href="{filename}"/></svg>
 </body>
 </html>
 '''.format(width=width, height=height,
@@ -101,10 +102,10 @@ def image2xhtml(imgfile, width, height, title, epubtype='bodymatter', lang='en')
 
 
 def create_opf(title, author, bookId, imageFiles):
-    package_attributes = {'xmlns': NAMESPACES['OPF'],
-                          'unique-identifier': 'bookId',
-                          'version': '3.0',
+    package_attributes = {'version': '3.0',
+                          'xmlns': NAMESPACES['OPF'],
                           'prefix': 'rendition: http://www.idpf.org/vocab/rendition/#',
+                          'unique-identifier': 'bookId',
                           'dir': args.direction}
     nsmap = {'dc': NAMESPACES['DC'], 'opf': NAMESPACES['OPF']}
 
