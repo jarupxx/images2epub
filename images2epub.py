@@ -77,6 +77,7 @@ IMAGE_TYPES = {
     'jpg': 'image/jpeg',
     'png': 'image/png',
     'svg': 'image/svg+xml'
+    'webp': 'image/webp',
 }
 
 
